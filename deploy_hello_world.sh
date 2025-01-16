@@ -62,9 +62,9 @@ retry_command() {
 
 print_step "Starting Hello World contract deployment process..."
 
-# Check if git is installed
-if ! command -v git &> /dev/null; then
-    print_error "git is not installed. Please install it first."
+# Check if mantrachaind is installed
+if ! command -v mantrachaind &> /dev/null; then
+    print_error "mantrachaind is not installed. Please install it first."
     exit 1
 fi
 
@@ -87,6 +87,12 @@ fi
 
 print_substep "Please ensure you have enough tokens in your wallet before proceeding."
 read -p "Press Enter to continue..."
+
+# Check if git is installed
+if ! command -v git &> /dev/null; then
+    print_error "git is not installed. Please install it first."
+    exit 1
+fi
 
 # Clone the repository
 print_step "Cloning the repository..."
@@ -219,6 +225,9 @@ if [ -z "$CONTRACT" ]; then
     exit 1
 fi
 echo "Contract Address: $CONTRACT"
+
+# Save contract address to file
+echo "hello_world_contract_address = $CONTRACT" >> contractAddress.txt
 
 wait_with_message "Preparing to query contract state..." 10
 
