@@ -68,6 +68,26 @@ if ! command -v git &> /dev/null; then
     exit 1
 fi
 
+# Setup wallet
+print_step "Setting up wallet..."
+if ! mantrachaind keys show wallet &> /dev/null; then
+    print_substep "Creating new wallet 'wallet'..."
+    print_substep "Please save your mnemonic phrase securely!"
+    if ! mantrachaind keys add wallet; then
+        print_error "Failed to create wallet"
+        exit 1
+    fi
+    print_substep "Wallet created successfully!"
+    print_substep "Please visit https://faucet.dukong.mantrachain.io to get testnet tokens"
+    print_substep "Waiting for 10 seconds to ensure you save your mnemonic..."
+    sleep 10
+else
+    print_substep "Wallet 'wallet' already exists"
+fi
+
+print_substep "Please ensure you have enough tokens in your wallet before proceeding."
+read -p "Press Enter to continue..."
+
 # Clone the repository
 print_step "Cloning the repository..."
 if [ ! -d "building-on-MANTRA-chain" ]; then
