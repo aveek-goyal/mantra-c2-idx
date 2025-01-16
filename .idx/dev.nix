@@ -62,6 +62,11 @@
   workspace = {
   onStart = {
     setup-mantra = ''
+     echo "=== Setting up Rust toolchain ==="
+          rustup default stable
+          rustup target add wasm32-unknown-unknown
+          echo "✓ Rust toolchain configured"
+
       echo "=== Setting up MANTRA Chain environment ==="
       
       if [ ! -d "$HOME/MANTRA" ]; then
