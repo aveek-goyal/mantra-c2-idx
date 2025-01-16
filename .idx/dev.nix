@@ -128,6 +128,11 @@ build_wasm() {
       echo "=== Verifying installations ==="
       rustc --version && echo "✓ Rust is properly configured"
       cargo --version && echo "✓ Cargo is properly configured"
+
+          # Make deploy script executable
+          echo "=== Setting up deployment scripts ==="
+          chmod +x deploy_hello_world.sh
+          echo "✓ Deployment scripts configured"
     '';
   };
 };
