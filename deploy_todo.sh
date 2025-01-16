@@ -3,6 +3,14 @@
 # Exit on error
 set -e
 
+# Source environment variables
+if [ -f "building-on-MANTRA-chain/mantrachaind-cli.env" ]; then
+    source building-on-MANTRA-chain/mantrachaind-cli.env
+else
+    print_error "Environment file not found at building-on-MANTRA-chain/mantrachaind-cli.env"
+    exit 1
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -38,6 +46,12 @@ check_result() {
 }
 
 print_step "Starting Todo dApp deployment process..."
+
+# Get initial balance
+WALLET_ADDR=$(mantrachaind keys show -a wallet)
+INITIAL_BALANCE=$(mantrachaind query bank balances $WALLET_ADDR $NODE --output json | jq -r '.balances[] | select(.denom=="uom") | .amount' || echo "0")
+INITIAL_BALANCE_OM=$(echo "scale=6; $INITIAL_BALANCE/1000000" | bc)
+echo "Initial Balance: $INITIAL_BALANCE_OM OM"
 
 # Check if hello world contract is deployed
 if [ ! -f "building-on-MANTRA-chain/hello_world_contract_info" ]; then
@@ -155,9 +169,13 @@ print_step "Getting contract address..."
 CONTRACT=$(mantrachaind query wasm list-contract-by-code $CODE_ID $NODE --output json | jq -r '.contracts[-1]')
 echo "Contract Address: $CONTRACT"
 
+cd ..
+# Save contract address to file
+echo "todo_contract_address = $CONTRACT" >> contractAddress.txt
+
 # Save contract info for frontend
 print_step "Setting up frontend..."
-cd ..
+
 cat > interface/.env << EOL
 VITE_CONTRACT_ADDRESS=$CONTRACT
 EOL
@@ -173,10 +191,15 @@ if ! command -v npm &> /dev/null; then
 fi
 
 # Install dependencies
-if ! npm install --legacy-peer-deps; then
+if ! npm install --force; then
     print_error "Failed to install frontend dependencies"
     exit 1
 fi
+
+# Get final balance and calculate tokens used
+FINAL_BALANCE=$(mantrachaind query bank balances $WALLET_ADDR $NODE --output json | jq -r '.balances[] | select(.denom=="uom") | .amount' || echo "0")
+FINAL_BALANCE_OM=$(echo "scale=6; $FINAL_BALANCE/1000000" | bc)
+TOKENS_USED=$(echo "scale=6; ($INITIAL_BALANCE - $FINAL_BALANCE)/1000000" | bc)
 
 print_step "🎉 Todo dApp deployment completed!"
 echo ""
@@ -187,6 +210,8 @@ echo ""
 echo "Contract Information:"
 echo "- Code ID: $CODE_ID"
 echo "- Contract Address: $CONTRACT"
-echo "- Chain ID: $CHAIN_ID"
+echo "- Token Usage: $TOKENS_USED OM"
+echo "- Initial Balance: $INITIAL_BALANCE_OM OM"
+echo "- Final Balance: $FINAL_BALANCE_OM OM"
 echo ""
 echo "Happy coding! 🚀"
