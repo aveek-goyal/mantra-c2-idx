@@ -132,6 +132,7 @@ build_wasm() {
           # Make deploy script executable
           echo "=== Setting up deployment scripts ==="
           chmod +x deploy_hello_world.sh
+          chmod +x deploy_todo.sh
           echo "✓ Deployment scripts configured"
     '';
   };
